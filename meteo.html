@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ma météo</title>
+</head>
+<style>
+  :root {
+  --primary: #db34a9;
+  --bg: #f4f6f8;
+  --dark: #333;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.app {
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px 25px;
+  width: 320px;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+h1 { color: var(--dark); margin-bottom: 20px; }
+
+.search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 25px;
+}
+
+.search input {
+  flex: 1;
+  padding: 10px;
+  font-size: 1rem;
+  border: 2px solid var(--primary);
+  border-radius: 8px;
+}
+
+.search button {
+  padding: 10px 16px;
+  font-size: 1.1rem;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.search button:hover { background: #2c80bd; }
+
+.card {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 12px;
+  padding: 20px 15px;
+}
+
+.card img { width: 80px; margin: 10px auto; }
+
+.card h2 { margin-bottom: 6px; }
+
+.card p { margin: 4px 0; font-size: 1.1rem; }
+
+.error { color: crimson; margin-top: 15px; }
+
+.hidden { display: none; }
+
+/* Responsive mini‑ajustement */
+@media (max-width:400px){
+  .app { width: 95vw; }
+}
+
+</style>
+<body>
+  <div class="app">
+    <h1>Météo en temps réel</h1>
+
+    <div class="search">
+      <input id="cityInput" type="text" placeholder="Tape une ville…">
+      <button id="searchBtn">🔍</button>
+    </div>
+
+    <div id="card" class="card hidden">
+      <h2 id="cityName"></h2>
+      <img id="icon" alt="" />
+      <p id="temp"></p>
+      <p id="desc"></p>
+    </div>
+
+    <p id="errorMsg" class="error hidden"></p>
+  </div>
+
+  <script>
+    const API_KEY = "f486e3eecaf9ce6b5cd8b0e0c8ec8630";
+const API_URL = "https://api.openweathermap.org/data/2.5/weather";
+
+const cityInput = document.getElementById("cityInput");
+const searchBtn  = document.getElementById("searchBtn");
+const card       = document.getElementById("card");
+const cityNameEl = document.getElementById("cityName");
+const tempEl     = document.getElementById("temp");
+const descEl     = document.getElementById("desc");
+const iconEl     = document.getElementById("icon");
+const errorMsg   = document.getElementById("errorMsg");
+
+searchBtn.addEventListener("click", fetchWeather);
+cityInput.addEventListener("keypress", e => {
+  if (e.key === "Enter") fetchWeather();
+});
+
+function fetchWeather() {
+  const city = cityInput.value.trim();
+  if (!city) return;
+
+  const url = `${API_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric&lang=fr`;
+
+  fetch(url)
+    .then(r => {
+      if (!r.ok) throw new Error("Ville introuvable");
+      return r.json();
+    })
+    .then(showWeather)
+    .catch(err => showError(err.message));
+}
+
+function showWeather(data) {
+  errorMsg.classList.add("hidden");
+  cityNameEl.textContent = `${data.name}, ${data.sys.country}`;
+  tempEl.textContent     = `${Math.round(data.main.temp)}°C`;
+  descEl.textContent     = data.weather[0].description;
+  iconEl.src             = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+  iconEl.alt             = data.weather[0].main;
+  card.classList.remove("hidden");
+}
+
+function showError(msg) {
+  card.classList.add("hidden");
+  errorMsg.textContent = msg;
+  errorMsg.classList.remove("hidden");
+}
+
+  </script>
+</body>
+</html>
